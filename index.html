@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notepad</title>
+  <style>
+  body {
+    font-family: -apple-system, Verdana, Geneva, sans-serif;
+    font-size:1.4rem;
+    max-width:60rem;
+    margin:0 auto;
+    padding:4rem;
+    min-height: 9.2rem;
+  }
+  @media screen and (max-device-width: 60rem) {
+      body {
+        padding-left: 2rem;
+        padding-right: 2rem;
+        min-height: 600px;
+      }
+  }
+  </style>
+</head>
+<body contenteditable="true" onclick="clickFunc();" onload="loadSavedPage();" oninput="inputEnteredFunc();">
+  <div id="deleteme" style="display: inline-block; color:grey;">
+    Write something here. Triple click to open a printable version.
+  </div>
+</body>
+<script type="text/javascript">
+  var clickTimeout;
+  var isClickInRange = 0;
+
+  //Handmade triple click with mobile in mind.
+  function clickFunc() {
+    if(document.getElementById("deleteme") != null){
+      document.body.innerHTML = '';
+    }
+    
+    if(isClickInRange == 2){
+      openPrintable();
+      clearTimeout(clickTimeout);
+      isClickInRange = false;
+    } else {
+      isClickInRange++;
+      clickTimeout = setTimeout(function () {
+        isClickInRange = 0;
+      }, 500);
+    }
+    
+  }
+  
+  var inputTimeout;
+  
+  function inputEnteredFunc(){
+    clearTimeout(inputTimeout);
+    
+    //Timeout is here to make sure localStorage is not called too often.
+    inputTimeout = setTimeout(function () {
+      savePage();
+    }, 200);
+    
+  }
+  
+  function openPrintable(){
+    window.open("data:text/html, <head>"+document.head.innerHTML+"</head><body>" + document.body.innerHTML + "<body>");
+  }
+  
+  function savePage(){
+    //localStorage.setItem("savedtext1", localStorage.getItem("savedtext0")); //Keeping 1 last copy just in case.
+    localStorage.setItem("savedtext0", document.body.innerHTML);
+  }
+  
+  function loadSavedPage(){
+    if(localStorage.hasOwnProperty("savedtext0")){
+      document.body.innerHTML = localStorage.getItem("savedtext0");
+    }
+  }
+</script>
+</html>
