@@ -12,6 +12,66 @@
     margin:0 auto;
     padding:4rem;
     min-height: 9.2rem;
+    
+    background: #fafafa;
+    
+    min-height: 400px;
+    
+    -webkit-transition: background 500ms;
+    transition: background 500ms;
+  }
+  body.dark {
+    background: #1a1a1a;
+    color: #777;
+  }
+  .noselect {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+  }
+  #toolbar {
+    position: absolute;
+    top: 0;
+    left:0;
+    right:0;
+    font-size: 0.88rem;
+    padding: 8px 16px;
+    font-family: Verdana, Geneva, sans-serif;
+    background: transparent;
+    
+    color: #666;
+        
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
+    opacity: 0.1;
+    
+    -webkit-transition: opacity 500ms,background 500ms;
+    transition: opacity 500ms,background 500ms;
+  }
+  .dark > #toolbar:hover {
+    color: #666;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  #toolbar:hover {
+    opacity: 1;
+    background: rgba(200, 200, 200, 0.05);
+  }
+  #theme{
+    float: right;
+    display: inline-block;
+    cursor: pointer;
+  }
+  #count{
+    cursor: default;
+    display: inline-block;
   }
   @media screen and (max-device-width: 60rem) {
       body {
@@ -19,62 +79,160 @@
         padding-right: 2rem;
         min-height: 600px;
       }
+      #toolbar {
+        opacity: 0.5;
+        padding: 0px 4px;
+        background: transparent;
+      }
+      #toolbar:hover {
+        opacity: 0.5;
+      }
   }
   </style>
 </head>
-<body contenteditable="true" onclick="clickFunc();" onload="loadSavedPage();" oninput="inputEnteredFunc();">
+<body contenteditable="true" onclick="clickFunc();" oninput="inputEnteredFunc();">
+  <div id="toolbar" contenteditable="false">
+    <div id="count" contenteditable="false">0 words</div>
+    <div id="theme" contenteditable="false" onclick="toggleTheme()">theme:white</div>
+  </div>
   <div id="deleteme" style="display: inline-block; color:grey;">
     Write something here. Triple click to open a printable version.
   </div>
 </body>
-<script type="text/javascript">
+<script id="script" type="text/javascript">
+  
   var clickTimeout;
   var isClickInRange = 0;
-
-  //Handmade triple click with mobile in mind.
-  function clickFunc() {
-    if(document.getElementById("deleteme") != null){
-      document.body.innerHTML = '';
-    }
-    
-    if(isClickInRange == 2){
-      openPrintable();
-      clearTimeout(clickTimeout);
-      isClickInRange = false;
-    } else {
-      isClickInRange++;
-      clickTimeout = setTimeout(function () {
-        isClickInRange = 0;
-      }, 500);
-    }
-    
-  }
+  
+  var deleteme;
   
   var inputTimeout;
   
-  function inputEnteredFunc(){
-    clearTimeout(inputTimeout);
-    
-    //Timeout is here to make sure localStorage is not called too often.
-    inputTimeout = setTimeout(function () {
-      savePage();
-    }, 200);
-    
-  }
+  var changeTheme = function(){};
   
-  function openPrintable(){
-    window.open("data:text/html, <head>"+document.head.innerHTML+"</head><body>" + document.body.innerHTML + "<body>");
-  }
+  //CSS and names
+  var themes = ['white','dark'];
+  var currentTheme = 0;
   
-  function savePage(){
-    //localStorage.setItem("savedtext1", localStorage.getItem("savedtext0")); //Keeping 1 last copy just in case.
-    localStorage.setItem("savedtext0", document.body.innerHTML);
-  }
+  var clickFunc = function(){};
+  var inputEnteredFunc = function(){};
   
-  function loadSavedPage(){
-    if(localStorage.hasOwnProperty("savedtext0")){
-      document.body.innerHTML = localStorage.getItem("savedtext0");
+  (function() {
+
+    document.getElementById("script").remove();
+
+    //Handmade triple click with mobile in mind.
+    clickFunc = function() {
+      deleteme = document.getElementById("deleteme");
+      if(deleteme != null){
+        deleteme.remove();
+        document.body.innerHTML += "&nbsp;";
+      }
+      
+      if(isClickInRange == 2){
+        openPrintable();
+        clearTimeout(clickTimeout);
+        isClickInRange = false;
+      } else {
+        isClickInRange++;
+        clickTimeout = setTimeout(function () {
+          isClickInRange = 0;
+        }, 500);
+      }
+      
     }
-  }
+        
+    
+    function toggleTheme() {
+      changeTheme( (currentTheme + 1) % themes.length );
+    }
+    
+    changeTheme = function(num){
+      currentTheme = num;
+      var className = document.body.className;
+      for(var i=0; i < themes.length; i++){
+        if(i == num){
+          className += " " + themes[num];
+        } else {
+          className = className.split(themes[i]).join('');
+        }
+      }
+      var themeDiv = document.getElementById('theme');
+      themeDiv.innerText = "theme:" + themes[num];
+      document.body.className = className;
+    }
+    
+    function updateWordCount() {
+      //Word count.
+      var countwords = 0;
+      words = document.body.innerHTML.split(" ");
+       for (i=0 ; i < words.length ; i++) {
+          // inner loop -- do the count
+          if (words[i].length > 0 && words[i] != "" && words[i] != "\n")
+             countwords += 1;
+       }
+       words = toolbar.innerText.split(" ");
+       for (i=0 ; i < words.length ; i++) {
+         if (words[i] != "" && words[i] != "\n")
+            countwords += 1;
+       }
+       
+       var countDiv = document.getElementById("count");
+       if (countwords == 1) {
+          countDiv.innerHTML = "1 word";
+       } else {
+         countDiv.innerHTML = countwords + " words";
+       }
+    }
+    
+    inputEnteredFunc = function () {
+      clearTimeout(inputTimeout);
+      
+      var toolbar = document.getElementById('toolbar');
+      if(document.body.innerText.length <= toolbar.innerText.length){
+        document.body.innerHTML += "&nbsp;";
+      }
+       
+      //Timeout is here to make sure localStorage is not called too often.
+      inputTimeout = setTimeout(function () {
+        savePage();
+        
+        updateWordCount();
+        
+      }, 200);
+      
+    }
+    
+    function openPrintable(){
+      var toolbar = document.getElementById('toolbar');
+      toolbar.parentElement.removeChild(toolbar);
+      window.open("data:text/html, <head>"+document.head.innerHTML+"</head><body>" + document.body.innerHTML + "<body>");
+      document.body.appendChild(toolbar);
+    }
+    
+    function savePage(){
+      var toolbar = document.getElementById('toolbar');
+      toolbar.parentElement.removeChild(toolbar);
+      localStorage.setItem("savedtext0", document.body.innerHTML);
+      document.body.appendChild(toolbar);
+    }
+    
+    function loadSavedPage(){
+      if(localStorage.hasOwnProperty("savedtext0")){
+        var saved = localStorage.getItem("savedtext0");
+        if(!!saved && saved.length > 0 && saved.split(" ").join('').split("<br>").join('').length > 0){
+          var deleteme = document.getElementById("deleteme");
+          if(deleteme != null){deleteme.remove();}
+          document.body.innerHTML += saved;
+          
+          updateWordCount();
+        }
+      }
+    }
+    
+    loadSavedPage();
+    
+  })();
+
 </script>
 </html>
