@@ -90,7 +90,7 @@
   }
   </style>
 </head>
-<body contenteditable="true" onclick="clickFunc();" oninput="inputEnteredFunc();">
+<body contenteditable="true" onclick="clickFunc();" oninput="inputEnteredFunc();" onpaste="inputEnteredFunc();">
   <div id="toolbar" contenteditable="false">
     <div id="count" contenteditable="false">0 words</div>
     <div id="theme" contenteditable="false" onclick="toggleTheme()">theme:white</div>
@@ -149,6 +149,9 @@
     }
     
     changeTheme = function(num){
+      
+      //TODO remove color information when changing theme.
+      
       currentTheme = num;
       var className = document.body.className;
       for(var i=0; i < themes.length; i++){
