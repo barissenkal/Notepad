@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,6 +24,26 @@
     background: #1a1a1a;
     color: #777;
   }
+  div {
+    font-family: -apple-system, Verdana, Geneva, sans-serif;
+  }
+  div.dark {
+    color: #777;
+  }
+  p {
+    font-family: -apple-system, Verdana, Geneva, sans-serif;
+  }
+  p.dark {
+    color: #777;
+  }
+  
+  a {
+    color: #4858b1;
+  }
+  a:visited{
+    color: #6848b1;
+  }
+  
   .noselect {
       -webkit-touch-callout: none;
       -webkit-user-select: none;
@@ -68,6 +88,22 @@
     float: right;
     display: inline-block;
     cursor: pointer;
+    
+    opacity: 0.5;
+  }
+  #theme:hover {
+    opacity: 1;
+  }
+  #formatfixer{
+    float: right;
+    display: inline-block;
+    cursor: pointer;
+    padding-right: 12px;
+    
+    opacity: 0.3;
+  }
+  #formatfixer:hover{
+    opacity: 1;
   }
   #count{
     cursor: default;
@@ -94,6 +130,8 @@
   <div id="toolbar" contenteditable="false">
     <div id="count" contenteditable="false">0 words</div>
     <div id="theme" contenteditable="false" onclick="toggleTheme()">theme:white</div>
+    <div id="formatfixer" contenteditable="false" onclick="fixFormat()">fix format</div>
+    <div id="formatfixer" contenteditable="false" onclick="clearFormat()">clear format</div>
   </div>
   <div id="deleteme" style="display: inline-block; color:grey;">
     Write something here. Triple click to open a printable version.
@@ -116,6 +154,8 @@
   
   var clickFunc = function(){};
   var toggleTheme = function(){};
+  var clearFormat = function(){};
+  var fixFormat = function(){};
   var inputEnteredFunc = function(){};
   
   (function() {
@@ -142,16 +182,73 @@
       }
       
     }
+    
+    clearFormat = function(){
+      var saved = document.body.innerHTML;
+      
+      var sindex = saved.indexOf("style");
+      var semicolindex = saved.indexOf(";",sindex);
+      
+      while(sindex > 0 && semicolindex > 0){
         
+        var substring;
+        if(semicolindex + 2 < saved.length){
+          substring = saved.substring(sindex,semicolindex+1);
+        } else {
+          substring = saved.substring(sindex,semicolindex+1);
+        }
+        
+        console.log(substring);
+        
+        saved = saved.replace(substring,' ');
+        
+        sindex = saved.indexOf("style");
+        if(sindex > 0) semicolindex = saved.indexOf(";",sindex);
+      }
+      
+      document.body.innerHTML = saved;
+      
+      savePage();
+    }
+    
+    fixFormat = function(){
+      var saved = document.body.innerHTML;
+      
+      //Removing color and background information.
+      var keywordsToRemove = ["background","color","font-family","font-weight","font-size"];
+      
+      for(var i=0; i<keywordsToRemove.length;i++){
+        var sindex = saved.indexOf(keywordsToRemove[i]);
+        var semicolindex = saved.indexOf(";",sindex);
+        
+        while(sindex > 0 && semicolindex > 0){
+          
+          var substring;
+          if(semicolindex + 2 < saved.length){
+            substring = saved.substring(sindex,semicolindex+1);
+          } else {
+            substring = saved.substring(sindex,semicolindex+1);
+          }
+          
+          console.log(substring);
+          
+          saved = saved.replace(substring,' ');
+          
+          sindex = saved.indexOf(keywordsToRemove[i]);
+          if(sindex > 0) semicolindex = saved.indexOf(";",sindex);
+        }
+      }
+      
+      document.body.innerHTML = saved;
+      
+      savePage();
+    }
     
     toggleTheme = function () {
       changeTheme( (currentTheme + 1) % themes.length );
     }
     
     changeTheme = function(num){
-      
-      //TODO remove color information when changing theme.
-      
       currentTheme = num;
       var className = document.body.className;
       for(var i=0; i < themes.length; i++){
@@ -164,6 +261,7 @@
       var themeDiv = document.getElementById('theme');
       themeDiv.innerText = "theme:" + themes[num];
       document.body.className = className;
+      saveTheme();
     }
     
     function updateWordCount() {
@@ -211,7 +309,7 @@
     function openPrintable(){
       var toolbar = document.getElementById('toolbar');
       toolbar.parentElement.removeChild(toolbar);
-      window.open("data:text/html, <head>"+document.head.innerHTML+"</head><body>" + document.body.innerHTML + "<body>");
+      window.open("data:text/html, <!DOCTYPE html><html><head>"+document.head.innerHTML+"</head><body>" + document.body.innerHTML + "<body></html>");
       document.body.appendChild(toolbar);
     }
     
@@ -235,6 +333,21 @@
       }
     }
     
+    function saveTheme(){
+      localStorage.setItem("theme", currentTheme);
+    }
+    
+    function loadSavedTheme(){
+      if(localStorage.hasOwnProperty("theme")){
+        var themeAsString = localStorage.getItem("theme");
+        if(!!themeAsString && themeAsString.length > 0){
+          var theme = parseInt(themeAsString);
+          if(theme >= 0) changeTheme(theme);
+        }
+      }
+    }
+    
+    loadSavedTheme();
     loadSavedPage();
     
   })();
