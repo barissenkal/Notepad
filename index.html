@@ -186,8 +186,8 @@
     clearFormat = function(){
       var saved = document.body.innerHTML;
       
-      var sindex = saved.indexOf("style");
-      var semicolindex = saved.indexOf(";",sindex);
+      var sindex = saved.indexOf('style=\"');
+      var semicolindex = saved.indexOf('\"',sindex + 8);
       
       while(sindex > 0 && semicolindex > 0){
         
@@ -202,8 +202,8 @@
         
         saved = saved.replace(substring,' ');
         
-        sindex = saved.indexOf("style");
-        if(sindex > 0) semicolindex = saved.indexOf(";",sindex);
+        sindex = saved.indexOf('style=\"');
+        if(sindex > 0) semicolindex = saved.indexOf('\"',sindex);
       }
       
       document.body.innerHTML = saved;
@@ -219,7 +219,7 @@
       
       for(var i=0; i<keywordsToRemove.length;i++){
         var sindex = saved.indexOf(keywordsToRemove[i]);
-        var semicolindex = saved.indexOf(";",sindex);
+        var semicolindex = saved.indexOf(";",sindex + keywordsToRemove[i].length);
         
         while(sindex > 0 && semicolindex > 0){
           
